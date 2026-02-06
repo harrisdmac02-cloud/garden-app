@@ -5,11 +5,13 @@ Provides monthly and seasonal gardening tips.
 Supports both Northern and Southern Hemispheres (approximate shift-based method).
 """
 
-from __future__ import annotations
+import json
+import os
 import datetime
+from datetime import date
 from typing import Literal
 
-# Seasons - Northern Hemisphere (month → season)
+# Seasons - Northern Hemisphere reference (month → season)
 SEASONS_NH = {
     12: "Winter", 1: "Winter", 2: "Winter",
     3: "Spring", 4: "Spring", 5: "Spring",
@@ -18,7 +20,7 @@ SEASONS_NH = {
 }
 
 # Basic monthly tips (Northern Hemisphere reference)
-# For Southern Hemisphere we apply a 6-month offset
+# Southern Hemisphere uses 6-month offset approximation
 MONTHLY_TIPS_NH = {
     1: "Protect sensitive plants from frost. Plan your spring garden layout.",
     2: "Start seeds indoors for tomatoes, peppers. Prune dormant trees and shrubs.",
@@ -61,10 +63,13 @@ def get_monthly_tip(
 ) -> str:
     """
     Return gardening tip for the given (or current) month and hemisphere.
-    Uses Northern Hemisphere tips + month offset for Southern Hemisphere.
+    Uses Northern Hemisphere tips + month offset for Southern Hemisphere approximation.
     """
     if month is None:
-        month = datetime.date.today().month
+        month = date.today().month
+
+    if hemisphere.lower() not in HEMISPHERE_SHIFT_MONTHS:
+        raise ValueError(f"Invalid hemisphere: {hemisphere}. Must be 'north' or 'south'.")
 
     adjusted_month = adjust_month(month, hemisphere)
     return MONTHLY_TIPS_NH.get(
@@ -83,9 +88,9 @@ def get_gardening_advice(
         hemisphere: "north" (default) or "south"
 
     Returns:
-        Dict with month name, season, tip, and year
+        Dict with month name, season, tip, hemisphere, and year
     """
-    today = datetime.date.today()
+    today = date.today()
     current_month = today.month
 
     return {
@@ -103,7 +108,7 @@ def get_gardening_advice(
 # ────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    today = datetime.date.today()
+    today = date.today()
     print(f"Current date: {today.strftime('%Y-%m-%d')}\n")
 
     for hem in ["north", "south"]:
